@@ -1,3 +1,3 @@
-export {usersTable} from './user.model'
+export {usersTable} from './user.model.js'
 
  

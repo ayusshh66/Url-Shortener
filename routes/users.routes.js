@@ -1,9 +1,10 @@
 import express from 'express'
 import db from '../src/index.js';
-import { usersTable } from '../models/user.model.js';
+import { usersTable } from '../models/index.js';
 import {signupPostRequestBodySchema} from '../validation/request.validation.js'
-import { eq } from 'drizzle-orm';
 import { randomBytes, createHmac } from 'node:crypto';
+import {hashPasswordWithSalt} from '../utils/hash.js'
+import {getUserByEmail, createUser} from '../services/user.service.js'
 
 const route = express.Router();
 
@@ -18,24 +19,15 @@ route.post('/signup', async (req,res) => {
     const {firstname, lastname, email, password} = validationResult.data;
 
     // checks the email entered with userstable email
-    const [exisitingUser] = await db.select({id: usersTable.id}).from(usersTable).where(eq(usersTable.email,email));
-
+    const exisitingUser = await getUserByEmail(email)
     //checks if email matches then will throw error
     if(exisitingUser) return res.status(400).json({error : `the user already exists with ${email}, please login instead`});
 
     // this sections generates random alphabets with our password for security purpose
-    const salt = randomBytes(256).toString('hex');
-    const hashedPassword = createHmac('sha256', salt).update(password).digest('hex');
+    const {salt, password : hashedPassword} = hashPasswordWithSalt(password) 
 
     //fills the value given by the user in userstable data
-    const [user] = await db.insert(usersTable).values({
-        // id,
-        firstname,
-        lastname,
-        email,
-        password : hashedPassword,
-        salt,
-    }).returning({id : usersTable.id}) // gives if as returning
+    const user = await createUser({firstname, lastname, email, hashedPassword, salt});
 
     //ending :)
     return res.status(200).json({ data : {
