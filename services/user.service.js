@@ -8,7 +8,9 @@ export const getUserByEmail = async (email) => {
     id: usersTable.id,
     email : usersTable.email,
     firstname : usersTable.firstname,
-    lastname : usersTable.lastname
+    lastname : usersTable.lastname,
+    password : usersTable.password,
+    salt : usersTable.salt,
     }). from(usersTable).where(eq(usersTable.email,email))
 
     return exisitingUser;
@@ -25,3 +27,4 @@ export const createUser = async ({firstname, lastname, email, hashedPassword, sa
 
     return user;
 }
+

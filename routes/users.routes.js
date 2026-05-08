@@ -1,10 +1,11 @@
 import express from 'express'
 import db from '../src/index.js';
 import { usersTable } from '../models/index.js';
-import {signupPostRequestBodySchema} from '../validation/request.validation.js'
+import {signupPostRequestBodySchema, loginPostRequesrBodySchema} from '../validation/request.validation.js'
 import { randomBytes, createHmac } from 'node:crypto';
 import {hashPasswordWithSalt} from '../utils/hash.js'
 import {getUserByEmail, createUser} from '../services/user.service.js'
+import  jwt  from 'jsonwebtoken';
 
 const route = express.Router();
 
@@ -33,6 +34,34 @@ route.post('/signup', async (req,res) => {
     return res.status(200).json({ data : {
         userId : user.id,
     }})
+})
+
+route.post('/login', async (req,res) => {
+    const validationResult = await loginPostRequesrBodySchema.safeParseAsync(req.body);
+
+    if(validationResult.error){
+        return res.status(400).json({error : validationResult.error.format()})
+    }
+
+    const {email, password} = validationResult.data;
+
+    const user = await getUserByEmail(email);
+
+    if(!user){
+        return res.status(400).json({error : `user with ${email} does not exist`})
+    }
+
+    const {password : hashedPassword} = hashPasswordWithSalt(password,user.salt)
+console.log("input password hashed:", hashedPassword)
+console.log("stored password in DB:", user.password)
+    if(hashedPassword !== user.password){
+        return res.status(400).json({error : `the password is wrong`})
+    }
+
+    const token =  jwt.sign({id : user.id}, process.env.JWT_SECRET)
+
+    return res.status(200).json({token})
+
 })
 
 export default route;
