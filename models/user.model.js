@@ -17,3 +17,18 @@ export const usersTable = pgTable('users', {
     updatedAt : timestamp("Updated_at").$onUpdate(()=> new Date())
 
 })
+
+export const urlsTable = pgTable('urls', {
+    id: uuid().primaryKey().defaultRandom(),
+
+    targetUrl: text('url').notNull(),
+
+    shortCode: text('short_code').notNull().unique(),
+
+    userId: uuid('user_id')
+        .notNull()
+        .references(() => usersTable.id),
+
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').$onUpdate(() => new Date())
+})
