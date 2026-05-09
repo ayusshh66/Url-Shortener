@@ -15,3 +15,10 @@ export const authenticationMiddleware = (req,res,next) =>{
     req.user = payload;
     return next();
 }
+
+export const ensureAuthentication = (req,res,next) =>{
+    if(!req.user || !req.user.id){
+         return res.status(400).json({error : ` you must be logged in`});
+    }
+    next()
+}
