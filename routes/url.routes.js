@@ -24,6 +24,12 @@ route.post('/shorten',ensureAuthentication, async(req,res) => {
     return res.status(201).json({ id : result.id, shortCode : result.shortCode, url : result.targetUrl})
 })
 
+route.get('/codes', async (req,res) => {
+    const codes = await db.select().from(urlsTable).where(eq(urlsTable.userId,req.user.id));
+
+    return res.status(200).json({codes })
+})
+
 route.get('/:shortCode', async (req,res) =>{
     const code = req.params.shortCode;
 
