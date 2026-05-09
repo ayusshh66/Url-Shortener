@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import {tokenValidator} from '../validation/token.validation.js'
-// import { error } from "node:console";
+
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -17,3 +17,14 @@ export const userToken = async (payload) => {
  const token = jwt.sign(payloadValidationData,JWT_SECRET);
  return token;
 } 
+
+export const tokenVerificationAuthentication = (token) => {
+    try{
+        const payload = jwt.verify(token, JWT_SECRET)
+        return payload;
+    }catch(err){
+        return null;
+    }
+
+    
+}
