@@ -5,6 +5,7 @@ import {signupPostRequestBodySchema, loginPostRequesrBodySchema} from '../valida
 import { randomBytes, createHmac } from 'node:crypto';
 import {hashPasswordWithSalt} from '../utils/hash.js'
 import {getUserByEmail, createUser} from '../services/user.service.js'
+import {userToken} from '../utils/token.js'
 import  jwt  from 'jsonwebtoken';
 
 const route = express.Router();
@@ -52,13 +53,15 @@ route.post('/login', async (req,res) => {
     }
 
     const {password : hashedPassword} = hashPasswordWithSalt(password,user.salt)
-console.log("input password hashed:", hashedPassword)
-console.log("stored password in DB:", user.password)
+    // console.log("input password hashed:", hashedPassword)
+    // console.log("stored password in DB:", user.password)
+
     if(hashedPassword !== user.password){
         return res.status(400).json({error : `the password is wrong`})
     }
 
-    const token =  jwt.sign({id : user.id}, process.env.JWT_SECRET)
+    // const token =  jwt.sign({id : user.id}, process.env.JWT_SECRET)
+    const token = await userToken({id:user.id})
 
     return res.status(200).json({token})
 
